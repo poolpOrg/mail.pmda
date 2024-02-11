@@ -142,13 +142,18 @@ func maildir_engine(maildir string) {
 	} else if isMarketing {
 		os.Rename(pathname, filepath.Join(maildir, ".Marketing", "new", filename))
 	} else if isList {
-		subdir := filepath.Join(maildir, ".List", "."+listId)
-		if _, err := os.Stat(subdir); err == nil {
-			maildir_mkdirs(subdir)
-			os.Rename(pathname, filepath.Join(subdir, "new", filename))
-		} else {
-			os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
-		}
+		// XXX - not that simple, depends on maildir layout,
+		// will give it a bit more thinking
+		/*
+			subdir := filepath.Join(maildir, ".List", "."+listId)
+			if _, err := os.Stat(subdir); err == nil {
+				maildir_mkdirs(subdir)
+				os.Rename(pathname, filepath.Join(subdir, "new", filename))
+			} else {
+				os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
+			}
+		*/
+		os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
 	} else {
 		os.Rename(pathname, filepath.Join(maildir, "new", filename))
 	}
