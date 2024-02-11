@@ -85,6 +85,8 @@ func maildir_engine(maildir string) {
 	writer := bufio.NewWriter(file)
 
 	hasReturnPath := false
+	listId := ""
+
 	isMarketing := false
 	isError := false
 	isJunk := false
@@ -104,6 +106,14 @@ func maildir_engine(maildir string) {
 				isMarketing = true
 			} else if strings.ToLower(line) == "precedence: list" {
 				isList = true
+			} else if strings.HasPrefix(strings.ToLower(line), "list-id: ") {
+				isList = true
+				listId = line[9:]
+				if listId != "" {
+					if listId[0] == '<' && listId[len(listId)-1] == '>' {
+						listId = listId[1 : len(listId)-1]
+					}
+				}
 			} else if strings.ToLower(line) == "return-path: <>" {
 				isError = true
 			} else if strings.HasPrefix(strings.ToLower(line), "return-path: ") {
@@ -126,7 +136,13 @@ func maildir_engine(maildir string) {
 	} else if isMarketing {
 		os.Rename(pathname, filepath.Join(maildir, ".Marketing", "new", filename))
 	} else if isList {
-		os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
+		subdir := filepath.Join(maildir, ".List", listId)
+		if _, err := os.Stat(subdir); err == nil {
+			maildir_mkdirs(subdir)
+			os.Rename(pathname, filepath.Join(subdir, "new", filename))
+		} else {
+			os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
+		}
 	} else {
 		os.Rename(pathname, filepath.Join(maildir, "new", filename))
 	}
