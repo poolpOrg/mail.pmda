@@ -84,6 +84,7 @@ func maildir_engine(maildir string) {
 	scanner := bufio.NewScanner(os.Stdin)
 	writer := bufio.NewWriter(file)
 
+	hasReturnPath := false
 	isMarketing := false
 	isError := false
 	isJunk := false
@@ -105,6 +106,8 @@ func maildir_engine(maildir string) {
 				isList = true
 			} else if strings.ToLower(line) == "return-path: <>" {
 				isError = true
+			} else if strings.HasPrefix(strings.ToLower(line), "return-path: ") {
+				hasReturnPath = true
 			}
 		}
 		fmt.Fprintf(writer, "%s\n", line)
@@ -116,14 +119,14 @@ func maildir_engine(maildir string) {
 		os.Exit(EX_TEMPFAIL)
 	}
 
-	if isJunk {
+	if isError || !hasReturnPath {
+		os.Rename(pathname, filepath.Join(maildir, ".Error", "new", filename))
+	} else if isJunk {
 		os.Rename(pathname, filepath.Join(maildir, ".Junk", "new", filename))
 	} else if isMarketing {
 		os.Rename(pathname, filepath.Join(maildir, ".Marketing", "new", filename))
 	} else if isList {
 		os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
-	} else if isError {
-		os.Rename(pathname, filepath.Join(maildir, ".Error", "new", filename))
 	} else {
 		os.Rename(pathname, filepath.Join(maildir, "new", filename))
 	}
