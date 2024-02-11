@@ -48,6 +48,7 @@ func maildir_engine(maildir string) {
 	maildir_mkdirs(filepath.Join(maildir, ".Junk"))
 	maildir_mkdirs(filepath.Join(maildir, ".List"))
 	maildir_mkdirs(filepath.Join(maildir, ".Marketing"))
+	maildir_mkdirs(filepath.Join(maildir, ".Social"))
 	maildir_mkdirs(filepath.Join(maildir, ".Transactional"))
 
 	if extension := os.Getenv("EXTENSION"); extension != "" {
@@ -88,6 +89,7 @@ func maildir_engine(maildir string) {
 	listId := ""
 
 	isMarketing := false
+	isSocial := false
 	isError := false
 	isJunk := false
 	isList := false
@@ -103,6 +105,8 @@ func maildir_engine(maildir string) {
 				strings.ToLower(line) == "x-spam-flag: yes" {
 				isJunk = true
 			} else if strings.ToLower(line) == "precedence: bulk" {
+				isMarketing = true
+			} else if strings.HasPrefix(strings.ToLower(line), "feedback-id: ") {
 				isMarketing = true
 			} else if strings.ToLower(line) == "precedence: list" {
 				isList = true
@@ -133,10 +137,12 @@ func maildir_engine(maildir string) {
 		os.Rename(pathname, filepath.Join(maildir, ".Error", "new", filename))
 	} else if isJunk {
 		os.Rename(pathname, filepath.Join(maildir, ".Junk", "new", filename))
+	} else if isSocial {
+		os.Rename(pathname, filepath.Join(maildir, ".Social", "new", filename))
 	} else if isMarketing {
 		os.Rename(pathname, filepath.Join(maildir, ".Marketing", "new", filename))
 	} else if isList {
-		subdir := filepath.Join(maildir, ".List", listId)
+		subdir := filepath.Join(maildir, ".List", "."+listId)
 		if _, err := os.Stat(subdir); err == nil {
 			maildir_mkdirs(subdir)
 			os.Rename(pathname, filepath.Join(subdir, "new", filename))
