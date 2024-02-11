@@ -84,6 +84,8 @@ func maildir_engine(maildir string) {
 	scanner := bufio.NewScanner(os.Stdin)
 	writer := bufio.NewWriter(file)
 
+	isCommercial := false
+	isList := false
 	isJunk := false
 	isHdr := true
 	for scanner.Scan() {
@@ -92,10 +94,15 @@ func maildir_engine(maildir string) {
 
 		if isHdr && line == "" {
 			isHdr = false
-		} else if isHdr &&
-			(strings.ToLower(line) == "x-spam: yes" ||
-				strings.ToLower(line) == "x-spam-flag: yes") {
-			isJunk = true
+		} else if isHdr {
+			if strings.ToLower(line) == "x-spam: yes" ||
+				strings.ToLower(line) == "x-spam-flag: yes" {
+				isJunk = true
+			} else if strings.ToLower(line) == "precedence: bulk" {
+				isCommercial = true
+			} else if strings.ToLower(line) == "precedence: list" {
+				isList = true
+			}
 		}
 		fmt.Fprintf(writer, "%s\n", line)
 	}
@@ -108,6 +115,10 @@ func maildir_engine(maildir string) {
 
 	if isJunk {
 		os.Rename(pathname, filepath.Join(maildir, ".Junk", "new", filename))
+	} else if isCommercial {
+		os.Rename(pathname, filepath.Join(maildir, ".Commercial", "new", filename))
+	} else if isList {
+		os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
 	} else {
 		os.Rename(pathname, filepath.Join(maildir, "new", filename))
 	}
