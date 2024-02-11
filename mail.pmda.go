@@ -45,9 +45,10 @@ func maildir_mkdirs(maildir string) {
 func maildir_engine(maildir string) {
 	maildir_mkdirs(maildir)
 	maildir_mkdirs(filepath.Join(maildir, ".Commercial"))
-	maildir_mkdirs(filepath.Join(maildir, ".Transactional"))
-	maildir_mkdirs(filepath.Join(maildir, ".Lists"))
+	maildir_mkdirs(filepath.Join(maildir, ".Errors"))
 	maildir_mkdirs(filepath.Join(maildir, ".Junk"))
+	maildir_mkdirs(filepath.Join(maildir, ".Lists"))
+	maildir_mkdirs(filepath.Join(maildir, ".Transactional"))
 
 	if extension := os.Getenv("EXTENSION"); extension != "" {
 		subdir := filepath.Join(maildir, extension)
