@@ -116,6 +116,7 @@ func maildir_engine(maildir string) {
 				if listId != "" {
 					if listId[0] == '<' && listId[len(listId)-1] == '>' {
 						listId = listId[1 : len(listId)-1]
+						_ = listId
 					}
 				}
 			} else if strings.ToLower(line) == "return-path: <>" {
@@ -139,8 +140,6 @@ func maildir_engine(maildir string) {
 		os.Rename(pathname, filepath.Join(maildir, ".Junk", "new", filename))
 	} else if isSocial {
 		os.Rename(pathname, filepath.Join(maildir, ".Social", "new", filename))
-	} else if isMarketing {
-		os.Rename(pathname, filepath.Join(maildir, ".Marketing", "new", filename))
 	} else if isList {
 		// XXX - not that simple, depends on maildir layout,
 		// will give it a bit more thinking
@@ -154,6 +153,8 @@ func maildir_engine(maildir string) {
 			}
 		*/
 		os.Rename(pathname, filepath.Join(maildir, ".List", "new", filename))
+	} else if isMarketing {
+		os.Rename(pathname, filepath.Join(maildir, ".Marketing", "new", filename))
 	} else {
 		os.Rename(pathname, filepath.Join(maildir, "new", filename))
 	}
